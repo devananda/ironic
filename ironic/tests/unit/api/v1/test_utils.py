@@ -82,6 +82,24 @@ class TestApiUtils(base.TestCase):
         values = utils.get_patch_values(patch, path)
         self.assertEqual(['node-x', 'node-y'], values)
 
+    def test_is_path_removed_success(self):
+        patch = [{'path': '/name', 'op': 'remove'}]
+        path = '/name'
+        value = utils.is_path_removed(patch, path)
+        self.assertTrue(value)
+
+    def test_is_path_removed_subpath_success(self):
+        patch = [{'path': '/local_link_connection/switch_id', 'op': 'remove'}]
+        path = '/local_link_connection'
+        value = utils.is_path_removed(patch, path)
+        self.assertTrue(value)
+
+    def test_is_path_removed_replace(self):
+        patch = [{'path': '/name', 'op': 'replace', 'value': 'node-x'}]
+        path = '/name'
+        value = utils.is_path_removed(patch, path)
+        self.assertFalse(value)
+
     def test_check_for_invalid_fields(self):
         requested = ['field_1', 'field_3']
         supported = ['field_1', 'field_2', 'field_3']
@@ -181,6 +199,13 @@ class TestApiUtils(base.TestCase):
         self.assertTrue(utils.allow_links_node_states_and_driver_properties())
         mock_request.version.minor = 10
         self.assertFalse(utils.allow_links_node_states_and_driver_properties())
+
+    @mock.patch.object(pecan, 'request', spec_set=['version'])
+    def test_allow_portgroups(self, mock_request):
+        mock_request.version.minor = 17
+        self.assertTrue(utils.allow_portgroups())
+        mock_request.version.minor = 16
+        self.assertFalse(utils.allow_portgroups())
 
 
 class TestNodeIdent(base.TestCase):
@@ -364,3 +389,38 @@ class TestVendorPassthru(base.TestCase):
         self.assertEqual(sorted(expected),
                          sorted(utils.get_controller_reserved_names(
                                 api_node.NodesController)))
+
+class TestPortgroupIdent(base.TestCase):
+    def setUp(self):
+        super(TestPortgroupIdent, self).setUp()
+        self.valid_name = 'my-portgroup'
+        self.valid_uuid = uuidutils.generate_uuid()
+        self.invalid_name = 'My Portgroup'
+        self.portgroup = test_api_utils.post_get_test_portgroup()
+
+    @mock.patch.object(pecan, 'request')
+    @mock.patch.object(objects.Portgroup, 'get_by_name')
+    def test_get_rpc_portgroup_name(self, mock_gbn, mock_pr):
+        mock_pr.version.minor = 10
+        self.portgroup['name'] = self.valid_name
+        mock_gbn.return_value = self.portgroup
+        self.assertEqual(self.portgroup, utils.get_rpc_portgroup(
+            self.valid_name))
+        self.assertEqual(1, mock_gbn.call_count)
+
+    @mock.patch.object(pecan, 'request')
+    @mock.patch.object(objects.Portgroup, 'get_by_uuid')
+    def test_get_rpc_portgroup_uuid(self, mock_gbu, mock_pr):
+        mock_pr.version.minor = 10
+        self.portgroup['uuid'] = self.valid_uuid
+        mock_gbu.return_value = self.portgroup
+        self.assertEqual(self.portgroup, utils.get_rpc_portgroup(
+            self.valid_uuid))
+        self.assertEqual(1, mock_gbu.call_count)
+
+    @mock.patch.object(pecan, 'request')
+    def test_get_rpc_portgroup_invalid_name(self, mock_pr):
+        mock_pr.version.minor = 10
+        self.assertRaises(exception.InvalidUuidOrName,
+                          utils.get_rpc_portgroup,
+                          self.invalid_name)

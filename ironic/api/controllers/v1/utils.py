@@ -98,6 +98,15 @@ def get_patch_values(patch, path):
             if p['path'] == path and p['op'] != 'remove']
 
 
+def is_path_removed(patch, path):
+    # Here is no need to reverse, we just want to know is removal a part
+    # of a patch or not.
+    # Catch subpath too (like /local_link_connection/switch_id)
+    for p in patch:
+        if p['path'].startswith(path) and p['op'] == 'remove':
+            return True
+
+
 def allow_node_logical_names():
     # v1.5 added logical name aliases
     return pecan.request.version.minor >= versions.MINOR_5_NODE_NAME
@@ -125,6 +134,29 @@ def get_rpc_node(node_ident):
 
     # Ensure we raise the same exception as we did for the Juno release
     raise exception.NodeNotFound(node=node_ident)
+
+
+def get_rpc_portgroup(portgroup_ident):
+    """Get the RPC portgroup from the portgroup uuid or logical name.
+
+    :param portgroup_ident: the UUID or logical name of a portgroup.
+
+    :returns: The RPC portgroup.
+    :raises: InvalidUuidOrName if the name or uuid provided is not valid.
+    :raises: PortgroupNotFound if the portgroup is not found.
+    """
+    # Check to see if the portgroup_ident is a valid UUID.  If it is, treat it
+    # as a UUID.
+    if uuidutils.is_uuid_like(portgroup_ident):
+        return objects.Portgroup.get_by_uuid(pecan.request.context,
+                                             portgroup_ident)
+
+    # We can refer to portgroups by their name
+    if utils.is_valid_logical_name(portgroup_ident):
+        return objects.Portgroup.get_by_name(pecan.request.context,
+                                             portgroup_ident)
+    else:
+        raise exception.InvalidUuidOrName(name=portgroup_ident)
 
 
 def is_valid_node_name(name):
@@ -307,3 +339,11 @@ def get_controller_reserved_names(cls):
         reserved_names += cls._custom_actions.keys()
 
     return reserved_names
+
+def allow_portgroups():
+    """Check if we should return portgroup info.
+
+    Version 1.17 of the API added support for PortGroups.
+    """
+    return (pecan.request.version.minor >=
+            versions.MINOR_17_PORTGROUP)
