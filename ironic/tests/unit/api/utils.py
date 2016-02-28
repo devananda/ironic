@@ -95,6 +95,8 @@ def node_post_data(**kw):
     node.pop('conductor_affinity')
     node.pop('chassis_id')
     node.pop('tags')
+    if 'network_interface' not in kw:
+        node.pop('network_interface')
     internal = node_controller.NodePatchType.internal_attrs()
     return remove_internal(node, internal)
 

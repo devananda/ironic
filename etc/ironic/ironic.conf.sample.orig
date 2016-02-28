@@ -30,6 +30,8 @@
 # developer documentation online. (list value)
 #enabled_drivers = pxe_ipmitool
 
+<<<<<<< HEAD
+=======
 # Specify the list of network drivers to load during service
 # initialization. Missing drivers, or interfaces which fail to
 # initialize, will prevent the conductor service from
@@ -40,6 +42,12 @@
 # in the developer documentation online. (list value)
 #enabled_network_drivers = flat
 
+
+#
+# Options defined in ironic.common.exception
+#
+
+>>>>>>> 4a09920... Add network drivers
 # Used if there is a formatting error when generating an
 # exception message (a programming error). If True, raise an
 # exception; if False, use the unformatted message. (boolean
@@ -1459,7 +1467,11 @@
 [neutron]
 
 #
-# Options defined in ironic.dhcp.neutron
+<<<<<<< HEAD
+# From ironic
+=======
+# Options defined in ironic.common.neutron
+>>>>>>> 4a09920... Add network drivers
 #
 
 # URL for connecting to neutron. (string value)

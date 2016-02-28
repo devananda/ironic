@@ -178,6 +178,18 @@ def is_valid_logical_name(name):
         return utils.is_valid_logical_name(name)
 
 
+def is_valid_network_interface(network_interface):
+    """Determine if the provided network_interface is a valid.
+
+    Check to see that the provided network_interface is in the enabled
+    network driver list.
+
+    :param: network_interface: the node network interface to check.
+    :returns: True if the network_interface is valid, False otherwise.
+    """
+    return network_interface in CONF.enabled_network_drivers
+
+
 def vendor_passthru(ident, method, topic, data=None, driver_passthru=False):
     """Call a vendor passthru API extension.
 
@@ -347,3 +359,12 @@ def allow_portgroups():
     """
     return (pecan.request.version.minor >=
             versions.MINOR_17_PORTGROUP)
+
+
+def allow_network_interface():
+    """Check if we should support network_interface field.
+
+    Version 1.18 of the API added support for network interfaces.
+    """
+    return (pecan.request.version.minor >=
+            versions.MINOR_18_NETWORK_INTERFACE)

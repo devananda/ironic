@@ -1,0 +1,20 @@
+---
+features:
+  - |
+    Added network drivers interface. Introduce three network drivers: ``flat``,
+    which is the default and replicates the flat network behavior present
+    previously, ``neutron``, to be used in case of neutron being present, and
+    ``none`` when neutron is not used, which is basically a noop driver. The
+    network driver is used to switch network for node during
+    provisioning/cleaning. Added new node field ``network_interface`` that
+    allows to specify network driver to use.
+deprecations:
+  - create_cleaning_ports and delete_cleaning_ports via dhcp provider is
+    deprecated. The network interface driver should be used instead.
+upgrade:
+  - Deployments not using neutron should switch the nodes to use ``none``
+    network interface, as ``flat`` interface now requires
+    ``[neutron]cleaning_network_uuid`` to be present in config. Also ``flat``
+    interface is in the list of ``enabled_network_drivers`` by default, in case
+    of non-neutron deployment, it should be changed to ``none``, as all the
+    enabled interfaces are loaded on conductor startup.
