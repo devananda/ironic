@@ -105,6 +105,23 @@ class PXEAndAMTToolDriver(base.BaseDriver):
         self.vendor = pxe.VendorPassthru()
 
 
+class PXEAndAMTToolDriver(base.BaseDriver):
+    """PXE + AMTTool driver.
+
+    This driver implements the 'core' functionality, combining
+    :class:`ironic.drivers.amttool.AMTPower` for power management with
+    :class:`ironic.drivers.pxe.PXE` for image deployment. Implementations are in
+    those respective classes; this class is merely the glue between them.
+    """
+
+    def __init__(self):
+        self.power = amttool.AMTPower()
+        self.boot = pxe.PXEBoot()
+        self.deploy = pxe.PXEDeploy()
+        self.management = amttool.AMTManagement()
+        self.vendor = pxe.VendorPassthru()
+
+
 class PXEAndSSHDriver(base.BaseDriver):
     """PXE + SSH driver.
 
