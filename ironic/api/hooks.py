@@ -69,6 +69,15 @@ class ContextHook(hooks.PecanHook):
         # Do not pass any token with context for noauth mode
         auth_token = (None if cfg.CONF.auth_strategy == 'noauth' else
                       headers.get('X-Auth-Token'))
+        print("HEADERS: %s" % headers)
+        print("KEYS: %s" % ["%s: %s" % (i, headers.get(i)) for i in list(headers.keys())])
+        print("AUTH TOKEN: %s" % auth_token)
+        is_public_api = state.request.environ.get('is_public_api', False)
+
+        # NOTE(deva): I don't think we need to check for cloud admin rights
+        # at this level, if we are checking individual access rights on each
+        # method.
+        is_admin = False
 
         creds = {
             'user': headers.get('X-User') or headers.get('X-User-Id'),
@@ -77,15 +86,15 @@ class ContextHook(hooks.PecanHook):
             'domain_name': headers.get('X-User-Domain-Name'),
             'auth_token': auth_token,
             'roles': headers.get('X-Roles', '').split(','),
+            'is_public_api': is_public_api,
+            'is_admin': is_admin,
         }
 
-        is_admin = policy.enforce('admin_api', creds, creds)
-        is_public_api = state.request.environ.get('is_public_api', False)
+        # TODO(deva): refactor this so enforce is called directly at relevant
+        # places in code, not globally and for every request
         show_password = policy.enforce('show_password', creds, creds)
 
         state.request.context = context.RequestContext(
-            is_admin=is_admin,
-            is_public_api=is_public_api,
             show_password=show_password,
             **creds)
 
@@ -104,22 +113,6 @@ class RPCHook(hooks.PecanHook):
 
     def before(self, state):
         state.request.rpcapi = rpcapi.ConductorAPI()
-
-
-class TrustedCallHook(hooks.PecanHook):
-    """Verify that the user has admin rights.
-
-    Checks whether the API call is performed against a public
-    resource or the user has admin privileges in the appropriate
-    tenant, domain or other administrative unit.
-
-    """
-    def before(self, state):
-        ctx = state.request.context
-        if ctx.is_public_api:
-            return
-        policy.enforce('admin_api', ctx.to_dict(), ctx.to_dict(),
-                       do_raise=True, exc=exc.HTTPForbidden)
 
 
 class NoExceptionTracebackHook(hooks.PecanHook):

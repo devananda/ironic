@@ -1,5 +1,60 @@
 {
+    # Define rules based on keystone roles, projects, or domains
+    "is_cloud_admin": "role:admin or role:administrator",
+    "is_admin": "rule:is_member and role:baremetal_admin",
+    "is_observer": "rule:is_member and role:baremetal_observer",
+
+    # Create a  "baremetal" keystone tenant in your deployment
+    # to restrict access to Ironic resources to only members of that project.
+    # This rule is used by the is_admin and is_observer roles, above.
+    "is_member": "tenant:demo or tenant:baremetal",
+
+    ##########################################
+    # Check API resource access against rules
+
+    # Nodes
+    "baremetal:node:get": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+    "baremetal:node:create": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:update": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:delete": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:validate": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:maintenance": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:get_boot_dev": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+    "baremetal:node:set_boot_dev": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:get_states": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+    "baremetal:node:set_power_state": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:set_provision_state": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:set_raid_state": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:get_console": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:node:set_console_state": "rule:is_cloud_admin or rule:is_admin",
+
+    # Ports
+    "baremetal:port:get": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+    "baremetal:port:create": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:port:update": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:port:delete": "rule:is_cloud_admin or rule:is_admin",
+
+    # Chassis
+    "baremetal:chassis:get": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+    "baremetal:chassis:create": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:chassis:update": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:chassis:delete": "rule:is_cloud_admin or rule:is_admin",
+
+    # Drivers
+    "baremetal:driver:get": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+    "baremetal:driver:get_properties": "rule:is_cloud_admin or rule:is_admin or rule:is_observer",
+
+    # Vendor passthru is a special case, but let's handle it like any other for now
+    "baremetal:node:vendor_passthru": "rule:is_cloud_admin or rule:is_admin",
+    "baremetal:driver:vendor_passthru": "rule:is_cloud_admin or rule:is_admin",
+
+    # Default to restricting all activity unless otherwise allowed
+    "default": "rule:is_cloud_admin",
+
+    # Legacy policy name, used for top-level access restrictions in some environments
     "admin_api": "role:admin or role:administrator",
-    "show_password": "!",
-    "default": "rule:admin_api"
+
+    # Global setting to show or hide passwords in API responses
+    # Effective even when not enforcing any other policy
+    "show_password": "!"
 }

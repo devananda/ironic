@@ -37,6 +37,7 @@ from ironic.api.controllers.v1 import versions
 from ironic.api import expose
 from ironic.common import exception
 from ironic.common.i18n import _
+from ironic.common import policy
 from ironic.common import states as ir_states
 from ironic.conductor import utils as conductor_utils
 from ironic import objects
@@ -157,6 +158,11 @@ class BootDeviceController(rest.RestController):
                   boot devices.
 
         """
+        policy.enforce('baremetal:node:get_boot_dev',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         rpc_node = api_utils.get_rpc_node(node_ident)
         topic = pecan.request.rpcapi.get_topic_for(rpc_node)
         if supported:
@@ -181,6 +187,11 @@ class BootDeviceController(rest.RestController):
                            Default: False.
 
         """
+        policy.enforce('baremetal:node:set_boot_dev',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         rpc_node = api_utils.get_rpc_node(node_ident)
         topic = pecan.request.rpcapi.get_topic_for(rpc_node)
         pecan.request.rpcapi.set_boot_device(pecan.request.context,
@@ -247,6 +258,11 @@ class NodeConsoleController(rest.RestController):
 
         :param node_ident: UUID or logical name of a node.
         """
+        policy.enforce('baremetal:node:get_console',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         rpc_node = api_utils.get_rpc_node(node_ident)
         topic = pecan.request.rpcapi.get_topic_for(rpc_node)
         try:
@@ -268,6 +284,11 @@ class NodeConsoleController(rest.RestController):
         :param enabled: Boolean value; whether to enable or disable the
                 console.
         """
+        policy.enforce('baremetal:node:set_console_state',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         rpc_node = api_utils.get_rpc_node(node_ident)
         topic = pecan.request.rpcapi.get_topic_for(rpc_node)
         pecan.request.rpcapi.set_console_mode(pecan.request.context,
@@ -1125,6 +1146,10 @@ class NodesController(rest.RestController):
         :param fields: Optional, a list with a specified set of fields
                        of the resource to be returned.
         """
+        policy.enforce('baremetal:node:get',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
         api_utils.check_allow_specify_fields(fields)
         api_utils.check_for_invalid_state_and_allow_filter(provision_state)
         api_utils.check_allow_specify_driver(driver)
@@ -1163,6 +1188,11 @@ class NodesController(rest.RestController):
         :param driver: Optional string value to get only nodes using that
                        driver.
         """
+        LOG.debug("Calling enforce with %s" % pecan.request.context.to_dict())
+        policy.enforce('baremetal:node:get',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
         api_utils.check_for_invalid_state_and_allow_filter(provision_state)
         api_utils.check_allow_specify_driver(driver)
         # /detail should only work against collections
@@ -1208,6 +1238,10 @@ class NodesController(rest.RestController):
         :param fields: Optional, a list with a specified set of fields
             of the resource to be returned.
         """
+        policy.enforce('baremetal:node:get',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
         if self.from_chassis:
             raise exception.OperationNotPermitted()
 
@@ -1222,6 +1256,11 @@ class NodesController(rest.RestController):
 
         :param node: a node within the request body.
         """
+        policy.enforce('baremetal:node:create',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         if self.from_chassis:
             raise exception.OperationNotPermitted()
 
@@ -1261,6 +1300,11 @@ class NodesController(rest.RestController):
         :param node_ident: UUID or logical name of a node.
         :param patch: a json PATCH document to apply to this node.
         """
+        policy.enforce('baremetal:node:update',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         if self.from_chassis:
             raise exception.OperationNotPermitted()
 
@@ -1332,6 +1376,11 @@ class NodesController(rest.RestController):
 
         :param node_ident: UUID or logical name of a node.
         """
+        policy.enforce('baremetal:node:delete',
+                       pecan.request.context.to_dict(),
+                       pecan.request.context.to_dict(),
+                       do_raise=True)
+
         if self.from_chassis:
             raise exception.OperationNotPermitted()
 

@@ -29,10 +29,11 @@ def init_enforcer(policy_file=None, rules=None,
     """Synchronously initializes the policy enforcer
 
        :param policy_file: Custom policy file to use, if none is specified,
-                           `CONF.policy_file` will be used.
+                           `CONF.oslo_policy.policy_file` will be used.
        :param rules: Default dictionary / Rules to use. It will be
                      considered just in the first instantiation.
-       :param default_rule: Default rule to use, CONF.default_rule will
+       :param default_rule: Default rule to use,
+                            CONF.oslo_policy.policy_default_rule will
                             be used if none is specified.
        :param use_conf: Whether to load rules from config file.
 
@@ -60,9 +61,12 @@ def get_enforcer():
 def enforce(rule, target, creds, do_raise=False, exc=None, *args, **kwargs):
     """A shortcut for policy.Enforcer.enforce()
 
-    Checks authorization of a rule against the target and credentials.
+    Checks authorization of a rule against the target and credentials,
+    or returns True if auth_strategy == "noauth"
 
     """
+    if CONF.auth_strategy == 'noauth' or creds['is_public_api']:
+        return True
     enforcer = get_enforcer()
     return enforcer.enforce(rule, target, creds, do_raise=do_raise,
                             exc=exc, *args, **kwargs)
